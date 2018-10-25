@@ -1,17 +1,16 @@
 import React from 'react';
 import {
-  Image,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   Button
 } from 'react-native';
 import axios from 'axios';
-import {Icon,List, ListItem} from 'react-native-elements';
+import {List, ListItem} from 'react-native-elements';
 import { WebBrowser } from 'expo';
+import PureChart from 'react-native-pure-chart';
 
 import { MonoText } from '../components/StyledText';
 
@@ -23,12 +22,44 @@ export default class HomeScreen extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      estaciones : []
+      estaciones : [],
+      horasEncajadas: [],
     }
+  }
+
+  componentWillMount(){
+    
+    //ASK ENCAJADOS HORA
+    const showEncajados = async () => {
+      
+      let dataTable = []
+
+      let chartData = await axios.get("http://192.168.0.64:3000/api/ActualHoras")
+      
+      chartData.data.forEach(element => {
+        dataTable.push({x: element.id, y:element.empaquetados, color: '#297AB1'})
+      });
+
+      
+      
+
+      this.setState({
+        horasEncajadas: dataTable
+      })
+
+      console.log(Array.isArray(this.state.horasEncajadas))
+      console.log(this.state.horasEncajadas)
+    }
+  
+    showEncajados()
   }
   
 
+  
+
   render() {
+
+    
 
     const onPressShowRechazoDisp1 = () => {
       axios.get("http://192.168.0.64:3000/api/ActualEstacion21s/rechazoTotal")
@@ -43,37 +74,62 @@ export default class HomeScreen extends React.Component {
     }
 
     const onPressShowEstaciones = () => {
+
+      let copyEstaciones = {};
+
       axios.get("http://192.168.0.64:3000/api/Onlines")
-      .then((estaciones)=> this.setState({ estaciones : estaciones.data}))
-      .then(colorState)
+      .then((estaciones)=> {
+        copyEstaciones = [...estaciones.data]
+        console.log(copyEstaciones)
+        colorState(copyEstaciones)
+        this.setState({
+          estaciones: copyEstaciones
+        }) 
+      })
       .catch(err => console.log(err))
     }
+
+   
 
     const logState = ()=>{
       console.log(this.state.estaciones)
     }
 
-    const colorState = ()=> {
-      this.state.estaciones.map((estacion)=> {
-        switch(estacion.estado){
-          case "0": 
-            estacion.estado = "grey"
+    const colorState = (estaciones)=> {
+      estaciones.map((estacion)=> {
+        switch(true){
+          case estacion.estado == 0: 
+            estacion.estado = "#E0E0E0"
             break;
-          case "1":
-            estacion.estado = "red";
+          case estacion.estado == 1:
+            estacion.estado = "#FF3D00";
             break;
-          case "2":
-            estacion.estado = "orange";
+          case estacion.estado == 2:
+            estacion.estado = "#FFC400";
             break;
-          case "3":
-            estacion.estado = "green";
+          case estacion.estado == 3:
+            estacion.estado = "#00E676";
+            break;
+          case estacion.estado > 3:
+            estacion.estado = "#212121"
             break;
         }
       })
+
     }
 
+   
+    const fill = 'rgb(134, 65, 244)'
+    
+  
+    
     return (
       <View style={styles.container}>
+     
+     
+          
+
+
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           <View style={styles.welcomeContainer}>
             <Button
@@ -103,15 +159,27 @@ export default class HomeScreen extends React.Component {
           </View>
 
           <List containerStyle={{marginBottom: 20}}>
+            
+          <PureChart type={'line'}
+            data={this.state.horasEncajadas}
+            height={100}
+            numberOfYAxisGuideLine={10} />
+            
             {
               this.state.estaciones.map((l) =>
                 
                 (  
                   <ListItem
                     roundAvatar
-                    avatar={{uri:l.avatar_url}}
+                    leftIcon={
+                      {name: 'brightness-1',
+                    'color': l.estado}
+                    }
                     key={l.id}
                     title={l.maquinas}
+                    rightIcon={
+                      {name: 'chevron-right'}
+                    }
                     
                   />
                 )
