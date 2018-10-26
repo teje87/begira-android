@@ -8,9 +8,13 @@ import {
   Button
 } from 'react-native';
 import axios from 'axios';
-import {List, ListItem} from 'react-native-elements';
+import {List, ListItem, Card, Divider} from 'react-native-elements';
 import { WebBrowser } from 'expo';
 import PureChart from 'react-native-pure-chart';
+import { DangerZone } from 'expo';
+let { Lottie } = DangerZone;
+import lottieJson from '../assets/lottie/hide1.json';
+import {VictoryPie} from 'victory-native';
 
 import { MonoText } from '../components/StyledText';
 
@@ -24,78 +28,12 @@ export default class HomeScreen extends React.Component {
     this.state = {
       estaciones : [],
       horasEncajadas: [],
-    }
-  }
-
-  componentWillMount(){
-    
-    //ASK ENCAJADOS HORA
-    const showEncajados = async () => {
-      
-      let dataTable = []
-
-      let chartData = await axios.get("http://192.168.0.64:3000/api/ActualHoras")
-      
-      chartData.data.forEach(element => {
-        dataTable.push({x: element.id, y:element.empaquetados, color: '#297AB1'})
-      });
-
-      
-      
-
-      this.setState({
-        horasEncajadas: dataTable
-      })
-
-      console.log(Array.isArray(this.state.horasEncajadas))
-      console.log(this.state.horasEncajadas)
-    }
-  
-    showEncajados()
-  }
-  
-
-  
-
-  render() {
-
-    
-
-    const onPressShowRechazoDisp1 = () => {
-      axios.get("http://192.168.0.64:3000/api/ActualEstacion21s/rechazoTotal")
-        .then((disp1)=> console.log(disp1.data))
-        .catch(err => console.log(err))
+      disp1: [],
+      disp2: [],
+      animation: lottieJson,
     }
 
-    const onPressShowRechazoDisp2 = () => {
-      axios.get("http://192.168.0.64:3000/api/ActualEstacion22s/rechazoTotal")
-        .then((disp2)=> console.log(disp2.data))
-        .catch(err => console.log(err))
-    }
-
-    const onPressShowEstaciones = () => {
-
-      let copyEstaciones = {};
-
-      axios.get("http://192.168.0.64:3000/api/Onlines")
-      .then((estaciones)=> {
-        copyEstaciones = [...estaciones.data]
-        console.log(copyEstaciones)
-        colorState(copyEstaciones)
-        this.setState({
-          estaciones: copyEstaciones
-        }) 
-      })
-      .catch(err => console.log(err))
-    }
-
-   
-
-    const logState = ()=>{
-      console.log(this.state.estaciones)
-    }
-
-    const colorState = (estaciones)=> {
+    colorState = (estaciones)=> {
       estaciones.map((estacion)=> {
         switch(true){
           case estacion.estado == 0: 
@@ -115,8 +53,113 @@ export default class HomeScreen extends React.Component {
             break;
         }
       })
-
     }
+
+    _playAnimation = () => {
+      if (!this.state.animation) {
+        this._loadAnimationAsync();
+      } else {
+        this.animation.reset();
+        this.animation.play();
+      }
+    }
+
+    
+    showEstaciones = () => {
+
+      let copyEstaciones = {};
+
+      axios.get("http://192.168.0.64:3000/api/Onlines")
+      .then((estaciones)=> {
+        copyEstaciones = [...estaciones.data]
+        console.log(copyEstaciones)
+        colorState(copyEstaciones)
+        this.setState({
+          estaciones: copyEstaciones
+        }) 
+      })
+      .catch(err => console.log(err))
+    }
+
+
+    showRechazoDisp = async () => {
+      let disp2 = await axios.get("http://192.168.0.64:3000/api/ActualEstacion22s/rechazoTotal")
+      let disp1= await axios.get("http://192.168.0.64:3000/api/ActualEstacion21s/rechazoTotal")
+      
+      disp1 = parseFloat(disp1.data[0].valor.replace(',', '.'))
+      disp2 = parseFloat(disp2.data[0].valor.replace(',', '.'))
+      
+      await this.setState({disp1: disp1 , disp2: disp2})
+      
+      
+      console.log(this.state.disp1)
+      console.log(this.state.disp2)
+          
+    }
+
+  
+  }
+
+
+
+  componentWillMount(){
+
+    _loadAnimationAsync = async () => {
+      this.setState({ animation: lottieJson })
+    };
+    
+    //ASK ENCAJADOS HORA
+    const showEncajados = async () => {
+      
+      let dataTable = []
+
+      let chartData = await axios.get("http://192.168.0.64:3000/api/ActualHoras")
+      
+      chartData.data.forEach(element => {
+        dataTable.push({x: element.id, y:element.empaquetados, color: '#297AB1'})
+      });
+
+      
+      this.setState({
+        horasEncajadas: dataTable
+      })
+
+      console.log(Array.isArray(this.state.horasEncajadas))
+      console.log(this.state.horasEncajadas)
+    }
+
+   
+
+
+    showRechazoDisp()
+    showEncajados()
+    showEstaciones()
+    
+  }
+  
+  componentDidUpdate(){
+    _playAnimation()
+    
+  }
+  
+
+  render() {
+
+    
+
+    
+
+    
+
+    
+
+   
+
+    const logState = ()=>{
+      console.log(this.state.estaciones)
+    }
+
+    
 
    
     const fill = 'rgb(134, 65, 244)'
@@ -125,46 +168,77 @@ export default class HomeScreen extends React.Component {
     
     return (
       <View style={styles.container}>
-     
+
+<Card>
+     <View style={styles.animationContainer}>
+        {this.state.animation &&
+          <Lottie
+            autoPlay
+            ref={animation => {
+              this.animation = animation;
+            }}
+            style={{
+              width: 300,
+              height: 300,
+              backgroundColor: 'white',
+            }}
+            source={this.state.animation}
+          />}
+      
+      </View>
+</Card>
      
           
 
 
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           <View style={styles.welcomeContainer}>
-            <Button
-              onPress={onPressShowRechazoDisp1}
-              title="Dispensadora1"
-              color="#841584"
-              accessibilityLabel="Learn more about this purple button"
-            />
-            <Button
-              onPress={onPressShowRechazoDisp2}
-              title="Dispensadora2"
-              color="#841584"
-              accessibilityLabel="Learn more about this purple button"
-            />
-            <Button
-              onPress={onPressShowEstaciones}
-              title="Estaciones"
-              color="#841584"
-              accessibilityLabel="Learn more about this purple button"
-            />
-            <Button
-              onPress={logState}
-              title="LOG ESTADO"
-              color="#841584"
-              accessibilityLabel="Learn more about this purple button"
-            />
-          </View>
+          <Card>
+          <VictoryPie
+                width= {300}
+                height= {130}
+                labels={(d) =>  d.y}
+                colorScale={["tomato", "black"]}
+                padAngle={3}
+                radius={20}
+                innerRadius={10}
+                data={[
+                  { x: "DISP1 NOK", y: this.state.disp1 },
+                  { x: "DISP1 OK", y: (100-this.state.disp1) }
+                ]}
+              />
 
-          <List containerStyle={{marginBottom: 20}}>
+          <Divider style={{ backgroundColor: 'grey' }} />
+
+              <VictoryPie
+              width= {300}
+              height= {130}
+              labels={(d) =>  d.y}
+              colorScale={["tomato", "black"]}
+              padAngle={3}
+              radius={20}
+              innerRadius={10}
+              data={[
+                { x: "DISP1 NOK", y: this.state.disp2 },
+                { x: "DISP1 OK", y: (100-this.state.disp2) }
+              ]}
+            />
+        </Card>
+
+
+          </View>
+          <List>
             
-          <PureChart type={'line'}
-            data={this.state.horasEncajadas}
-            height={100}
-            numberOfYAxisGuideLine={10} />
             
+            <Card>
+              <PureChart type={'line'}
+                data={this.state.horasEncajadas}
+                height={100}
+                numberOfYAxisGuideLine={10} 
+              />
+            </Card>
+            
+            <Card>
             {
               this.state.estaciones.map((l) =>
                 
@@ -183,9 +257,9 @@ export default class HomeScreen extends React.Component {
                     
                   />
                 )
-                
               )
             }
+            </Card>
           </List>
 
   
@@ -226,6 +300,10 @@ export default class HomeScreen extends React.Component {
       'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
     );
   };
+
+  
+
+  
 }
 
 const styles = StyleSheet.create({
@@ -242,6 +320,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingTop: 30,
+  },
+  animationContainer: {
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height:80
   },
   welcomeContainer: {
     alignItems: 'center',
