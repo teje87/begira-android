@@ -7,9 +7,10 @@ import HomeScreen from '../screens/HomeScreen';
 import LinksScreen from '../screens/LinksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
-const HomeStack = createStackNavigator({
+const HomeStack = createStackNavigator(
+  {
   Home: HomeScreen,
-});
+  });
 
 HomeStack.navigationOptions = {
   tabBarLabel: 'Home',

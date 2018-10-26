@@ -8,13 +8,14 @@ import {
   Button
 } from 'react-native';
 import axios from 'axios';
-import {List, ListItem, Card, Divider} from 'react-native-elements';
+import {List, ListItem, Card, Divider, Header} from 'react-native-elements';
 import { WebBrowser } from 'expo';
 import PureChart from 'react-native-pure-chart';
 import { DangerZone } from 'expo';
 let { Lottie } = DangerZone;
 import lottieJson from '../assets/lottie/hide1.json';
 import {VictoryPie} from 'victory-native';
+
 
 import { MonoText } from '../components/StyledText';
 
@@ -153,15 +154,6 @@ export default class HomeScreen extends React.Component {
 
     
 
-   
-
-    const logState = ()=>{
-      console.log(this.state.estaciones)
-    }
-
-    
-
-   
     const fill = 'rgb(134, 65, 244)'
     
   
@@ -169,26 +161,27 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
 
-<Card>
-     <View style={styles.animationContainer}>
-        {this.state.animation &&
-          <Lottie
-            autoPlay
-            ref={animation => {
-              this.animation = animation;
-            }}
-            style={{
-              width: 300,
-              height: 300,
-              backgroundColor: 'white',
-            }}
-            source={this.state.animation}
-          />}
-      
-      </View>
-</Card>
-     
-          
+<Header
+  leftComponent={{ icon: 'menu', color: '#fff' }}
+  backgroundColor = {"#81D4FA"}
+  centerComponent={
+    <View style={styles.animationContainer}>
+      {
+      <Lottie
+        ref={animation => {
+          this.animation = animation;
+        }}
+        style={{
+          width: 140,
+          height: 140,
+          backgroundColor: '#81D4FA',
+        }}
+        source={this.state.animation}
+      />}
+    </View>}
+  rightComponent={{ icon: 'home', color: '#fff' }}
+/>
+
 
 
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -322,10 +315,10 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   animationContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "#81D4FA",
     alignItems: 'center',
     justifyContent: 'center',
-    height:80
+    height:40
   },
   welcomeContainer: {
     alignItems: 'center',
