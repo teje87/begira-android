@@ -15,11 +15,12 @@ import { DangerZone } from 'expo';
 let { Lottie } = DangerZone;
 import lottieJson from '../assets/lottie/hide1.json';
 import {VictoryPie} from 'victory-native';
+import {connect} from 'react-redux'
 
 
 import { MonoText } from '../components/StyledText';
 
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
@@ -111,22 +112,12 @@ export default class HomeScreen extends React.Component {
     
     //ASK ENCAJADOS HORA
     const showEncajados = async () => {
-      
       let dataTable = []
-
       let chartData = await axios.get("http://192.168.0.64:3000/api/ActualHoras")
-      
       chartData.data.forEach(element => {
         dataTable.push({x: element.id, y:element.empaquetados, color: '#297AB1'})
       });
-
-      
-      this.setState({
-        horasEncajadas: dataTable
-      })
-
-      console.log(Array.isArray(this.state.horasEncajadas))
-      console.log(this.state.horasEncajadas)
+      this.props.showEncajados(dataTable)
     }
 
    
@@ -145,24 +136,11 @@ export default class HomeScreen extends React.Component {
   
 
   render() {
-
-    
-
-    
-
-    
-
-    
-
-    const fill = 'rgb(134, 65, 244)'
-    
-  
     
     return (
       <View style={styles.container}>
 
 <Header
-  leftComponent={{ icon: 'menu', color: '#fff' }}
   backgroundColor = {"#81D4FA"}
   centerComponent={
     <View style={styles.animationContainer}>
@@ -179,7 +157,6 @@ export default class HomeScreen extends React.Component {
         source={this.state.animation}
       />}
     </View>}
-  rightComponent={{ icon: 'home', color: '#fff' }}
 />
 
 
@@ -225,7 +202,7 @@ export default class HomeScreen extends React.Component {
             
             <Card>
               <PureChart type={'line'}
-                data={this.state.horasEncajadas}
+                data={this.props.horasEncajadas}
                 height={100}
                 numberOfYAxisGuideLine={10} 
               />
@@ -393,6 +370,27 @@ const styles = StyleSheet.create({
     color: '#2e78b7',
   },
 });
-//1 rojo
-//2 naranja
-//3 verde
+
+
+//REDUX 
+
+const mapStateToProps = state => {
+  return{
+    horasEncajadas: state.horasEncajadas,
+    estaciones: state.estaciones ,
+    disp1: state.disp1,
+    disp2: state.disp2
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return{
+    showEncajados: (value) => {
+      dispatch({type: 'SHOW_ENCAJADOS', value})
+    }
+  }
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen)
+
+

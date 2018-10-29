@@ -24,6 +24,8 @@
     "react-native-pure-chart": "0.0.24",
     "react-native-svg-charts": "^5.2.0",
     "react-navigation": "^2.16.0",
+    "react-redux": "^5.1.0",
+    "redux": "^4.0.1",
     "victory-native": "^30.5.0"
   },
   "devDependencies": {
