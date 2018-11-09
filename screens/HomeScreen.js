@@ -4,11 +4,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  Button
+  View
 } from 'react-native';
 import axios from 'axios';
-import {List, ListItem, Card, Divider, Header} from 'react-native-elements';
+import {List, ListItem, Card, Divider, Header, Button} from 'react-native-elements';
 import { WebBrowser } from 'expo';
 import PureChart from 'react-native-pure-chart';
 import { DangerZone } from 'expo';
@@ -32,6 +31,7 @@ class HomeScreen extends React.Component {
       horasEncajadas: [],
       disp1: [],
       disp2: [],
+      disp3: [],
       animation: lottieJson,
     }
 
@@ -71,7 +71,7 @@ class HomeScreen extends React.Component {
 
       let copyEstaciones = {};
 
-      axios.get("http://192.168.0.64:3000/api/Onlines")
+      axios.get("http://192.168.0.129:3000/api/Onlines")
       .then((estaciones)=> {
         copyEstaciones = [...estaciones.data]
         console.log(copyEstaciones)
@@ -85,24 +85,22 @@ class HomeScreen extends React.Component {
 
 
     showRechazoDisp = async () => {
-      let disp2 = await axios.get("http://192.168.0.64:3000/api/ActualEstacion22s/rechazoTotal")
-      let disp1= await axios.get("http://192.168.0.64:3000/api/ActualEstacion21s/rechazoTotal")
+      let disp2 = await axios.get("http://192.168.0.129:3000/api/ActualEstacion22s/rechazoTotal")
+      let disp1= await axios.get("http://192.168.0.129:3000/api/ActualEstacion21s/rechazoTotal")
+      let disp3 = await axios.get("http://192.168.0.129:3000/api/ActualEstacion23s/rechazoTotal")
       
       disp1 = parseFloat(disp1.data[0].valor.replace(',', '.'))
       disp2 = parseFloat(disp2.data[0].valor.replace(',', '.'))
+      disp3 = parseFloat(disp3.data[0].valor.replace(',', '.'))
       
-      await this.setState({disp1: disp1 , disp2: disp2})
+      await this.setState({disp1: disp1 , disp2: disp2, disp3: disp3})
       
       
       console.log(this.state.disp1)
       console.log(this.state.disp2)
           
     }
-
-  
   }
-
-
 
   componentWillMount(){
 
@@ -113,7 +111,7 @@ class HomeScreen extends React.Component {
     //ASK ENCAJADOS HORA
     const showEncajados = async () => {
       let dataTable = []
-      let chartData = await axios.get("http://192.168.0.64:3000/api/ActualHoras")
+      let chartData = await axios.get("http://192.168.0.129:3000/api/ActualHoras")
       chartData.data.forEach(element => {
         dataTable.push({x: element.id, y:element.empaquetados, color: '#297AB1'})
       });
@@ -140,31 +138,66 @@ class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
 
-<Header
-  backgroundColor = {"#81D4FA"}
-  centerComponent={
-    <View style={styles.animationContainer}>
-      {
-      <Lottie
-        ref={animation => {
-          this.animation = animation;
-        }}
-        style={{
-          width: 140,
-          height: 140,
-          backgroundColor: '#81D4FA',
-        }}
-        source={this.state.animation}
-      />}
-    </View>}
-/>
+        <Header
+          backgroundColor = {"#253EA7"}
+          outerContainerStyles = { {height : 85 }}
+          centerComponent={
+            <View style={styles.animationContainer}>
+              {
+              <Lottie
+                ref={animation => {
+                  this.animation = animation;
+                }}
+                style={{
+                  width: 160,
+                  height: 160,
+                  backgroundColor: '#253EA7',
+                }}
+                source={this.state.animation}
+              />}
+            </View>}
+        />
 
 
 
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           <View style={styles.welcomeContainer}>
+                
+          
           <Card>
-          <VictoryPie
+                  {/* Rechazos Disp1 */}
+            <Card>
+              <Button
+              rounded
+              icon={{type: 'material-community',name: 'eyedropper'}}
+              title='Disp 1' 
+              backgroundColor = "#2978FF"/>
+
+              <VictoryPie
+                    width= {300}
+                    height= {130}
+                    labels={(d) =>  d.y}
+                    colorScale={["tomato", "black"]}
+                    padAngle={3}
+                    radius={20}
+                    innerRadius={10}
+                    data={[
+                      { x: "DISP1 NOK", y: this.state.disp1 },
+                      { x: "DISP1 OK", y: (100-this.state.disp1) }
+                    ]}
+                  />
+
+            </Card>
+
+                  {/* Rechazos Disp2 */}
+            <Card>
+              <Button
+                rounded
+                icon={{type: 'material-community',name: 'eyedropper'}}
+                title='Disp 2' 
+                backgroundColor = "#2978FF"/>
+
+              <VictoryPie
                 width= {300}
                 height= {130}
                 labels={(d) =>  d.y}
@@ -173,27 +206,37 @@ class HomeScreen extends React.Component {
                 radius={20}
                 innerRadius={10}
                 data={[
-                  { x: "DISP1 NOK", y: this.state.disp1 },
-                  { x: "DISP1 OK", y: (100-this.state.disp1) }
+                  { x: "DISP1 NOK", y: this.state.disp2 },
+                  { x: "DISP1 OK", y: (100-this.state.disp2) }
                 ]}
               />
-
-          <Divider style={{ backgroundColor: 'grey' }} />
+            </Card>
+              
+                  {/* Rechazos Gota Seca */}
+            <Card>
+              <Button
+                rounded
+                icon={{type: 'entypo',name: 'drop'}}
+                title='gota seca' 
+                backgroundColor = "#2978FF"/>
 
               <VictoryPie
-              width= {300}
-              height= {130}
-              labels={(d) =>  d.y}
-              colorScale={["tomato", "black"]}
-              padAngle={3}
-              radius={20}
-              innerRadius={10}
-              data={[
-                { x: "DISP1 NOK", y: this.state.disp2 },
-                { x: "DISP1 OK", y: (100-this.state.disp2) }
-              ]}
-            />
-        </Card>
+                width= {300}
+                height= {130}
+                labels={(d) =>  d.y}
+                colorScale={["tomato", "black"]}
+                padAngle={3}
+                radius={20}
+                innerRadius={10}
+                data={[
+                  { x: "DISP1 NOK", y: this.state.disp3 },
+                  { x: "DISP1 OK", y: (100-this.state.disp3) }
+                ]}
+              />
+                
+            </Card>
+
+          </Card>
 
 
           </View>
@@ -206,6 +249,7 @@ class HomeScreen extends React.Component {
                 height={100}
                 numberOfYAxisGuideLine={10} 
               />
+         
             </Card>
             
             <Card>
@@ -292,10 +336,10 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   animationContainer: {
-    backgroundColor: "#81D4FA",
+    backgroundColor: "#2978FF",
     alignItems: 'center',
     justifyContent: 'center',
-    height:40
+    height:50
   },
   welcomeContainer: {
     alignItems: 'center',
